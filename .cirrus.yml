@@ -101,14 +101,14 @@ image_push_task:
         # podman login -u  "$QUAY_USER" --password-stdin quay.io <<<"$QUAY_PASSWORD"
         # time podman manifest push --all "$FULL_IMAGE_NAME"
 
-test_task:
-    name: "Total Success"
-    alias: success
-    depends_on:
-        - image_build
-        - image_push
-    container:
-        image: "${FEDORA_CONTAINER_FQIN}"
-        cpu: 1
-        memory: 1
-    noop_script: true
+# test_task:
+#     name: "Total Success"
+#     alias: success
+#     depends_on:
+#         - image_build
+#         - image_push
+#     container:
+#         image: "${FEDORA_CONTAINER_FQIN}"
+#         cpu: 1
+#         memory: 1
+#     noop_script: true
