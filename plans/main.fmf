@@ -1,0 +1,25 @@
+prepare:
+    - how: install
+      package:
+        - dosfstools
+        - golang
+        - jq
+        - osbuild
+        - osbuild-ostree
+        - osbuild-tools
+        - podman
+        - podman-machine
+        - podman-remote
+        - gvisor-tap-vsock
+        - zstd
+
+/build_and_verify:
+    summary: Build and Verify
+    provision:
+        how: artemis
+        hardware:
+            virtualization:
+                is-virtualized: false
+    execute:
+        how: tmt
+        script: bash tmt-test.sh
