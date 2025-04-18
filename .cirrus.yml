@@ -73,7 +73,7 @@ image_push_task:
     # Less likely the task is canceled.
     stateful: true
     # Only push new images when not run on a PR.
-    only_if: $CIRRUS_TAG == ''
+    only_if: $CIRRUS_TAG != ''
     depends_on:
         - image_build
     ec2_instance:
