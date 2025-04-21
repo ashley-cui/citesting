@@ -32,6 +32,8 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "::notice::releasing $VERSION"
     - name: Wait for images
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         retries=180
         retry_interval=15
@@ -40,7 +42,7 @@ jobs:
           gh api \
           -H "Accept: application/vnd.github+json" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.action_repository }}/commits/${{ steps.getversion.outputs.version }}/check-runs \
+          /repos/${{ github.repository }}/commits/${{ steps.getversion.outputs.version }}/check-runs \
           > runs.json
           cat runs.json | jq
 
@@ -109,7 +111,9 @@ jobs:
           cat podman-rpm-info-vars.sh
           pr=$(sed -n '/^export PODMAN_PR_NUM/s/^[^"]*"\([^"]*\)"$/\1/p' podman-rpm-info-vars.sh)
           echo $pr
-          gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/ashley-cui/pull/15
+          gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/ashley-cui/podman-actions-test/pull/15
+
+          echo "here is soome temp changes"
 
     - name: Create release
       env:
