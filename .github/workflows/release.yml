@@ -44,26 +44,25 @@ jobs:
           -H "X-GitHub-Api-Version: 2022-11-28" \
           /repos/${{ github.repository }}/commits/${{ steps.getversion.outputs.version }}/check-runs \
           > runs.json
-          cat runs.json | jq
 
         #   status=`jq '.check_runs[] | select(.name=="Total Success").status' runs.json`
         #   conclusion=`jq '.check_runs[] | select(.name=="Total Success").conclusion' runs.json`
           status=$(jq --raw-output '.check_runs[] | select(.name=="Image Push").status' runs.json)
           conclusion=$(jq --raw-output '.check_runs[] | select(.name=="Image Push").conclusion' runs.json)
-          echo $status
+          printf "Retry number %s\n" $n
 
           if [[ "$status" == "completed" ]] && [[ "$conclusion" == "success" ]]; then
-            # exit 0
             echo "success"
-            break
+            exit 0
           elif [[ "$status" == "completed" ]] && [[ "$conclusion" != "success" ]]; then
             echo "::error:: Build did not succeed!"
-            break
-            # exit 1
+            exit 1
           fi
           sleep $retry_interval
         done
 
+        echo "::error:: Timeout waiting for build!"
+        exit 1
 
     - name: Get images
       run: |
@@ -101,12 +100,16 @@ jobs:
       env:
           GH_TOKEN: ${{ secrets.PODMANBOT_TOKEN }}
       run: |
-          # repo=${{ github.action_repository }}
+          # repo=${{ github.repository }}
           # tag=${{ steps.getversion.outputs.version }}
-          # curl --fail -o podmanpr \
-          #   https://raw.githubusercontent.com/$repo/refs/tags/$tag/podman-rpm-info-vars.sh
           # pr=$(sed -n '/^export PODMAN_PR_NUM/s/^[^"]*"\([^"]*\)"$/\1/p' podman-rpm-info-vars.sh)
-          # gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/containers/podman/pull/$PR\
+          # if [[ $pr != "" ]]; then
+          #   gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/containers/podman/pull/$pr/
+          # fi
+
+          # if [[ $pr !="" ]]; then
+          #   gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/containers/podman/pull/$PR\
+          # fi
 
           cat podman-rpm-info-vars.sh
           pr=$(sed -n '/^export PODMAN_PR_NUM/s/^[^"]*"\([^"]*\)"$/\1/p' podman-rpm-info-vars.sh)
@@ -121,6 +124,6 @@ jobs:
       run: |
         gh release create ${{ steps.getversion.outputs.version }} \
             -t ${{ steps.getversion.outputs.version }} \
-            --notes "${{ steps.getversion.outputs.version }} machine images \
+            --notes "${{ steps.getversion.outputs.version }} release images" \
             --verify-tag \
             artifacts/*
