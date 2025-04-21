@@ -1,5 +1,5 @@
 repo=ashley-cui/citesting
-version=v0.0.01
+version=v0.0.4
 
 
 retries=180
@@ -55,3 +55,10 @@ get_images aarch64 $aarchtaskid
 pushd artifacts
 sha256sum * > shasums
 popd
+
+
+if [[ $pr != "" ]]; then
+  echo "yes pr"
+else
+echo "hehwkdfh"
+fi
