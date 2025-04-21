@@ -111,6 +111,8 @@ jobs:
           echo $pr
           gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/ashley-cui/pull/15
 
+          echo "here is soome temp changes"
+
     - name: Create release
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
