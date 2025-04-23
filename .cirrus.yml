@@ -65,9 +65,9 @@ image_build_task:
         path: "*.{zst,tar}"
         type: application/octet-stream
 
-image_push_task:
-    name: "Image Push"
-    alias: "image_push"
+publish_images_task:
+    name: "Publish Images"
+    alias: "publish_images"
     # Make sure that there are not two push running at the same time.
     execution_lock: $CIRRUS_BRANCH
     # Less likely the task is canceled.
@@ -93,7 +93,7 @@ image_push_task:
         if [[ $CIRRUS_TAG != '' ]]; then
             sudo dnf install -y gh
         fi
-    main_script: |
+    push_script: |
         mkdir $OUTDIR
         for end in applehv.raw.zst hyperv.vhdx.zst qemu.qcow2.zst tar; do
             for arch in x86_64 aarch64; do
@@ -106,26 +106,13 @@ image_push_task:
         podman images
         # podman login -u  "$QUAY_USER" --password-stdin quay.io <<<"$QUAY_PASSWORD"
         # time podman manifest push --all "$FULL_IMAGE_NAME"
-    podman_label_script: |
-        if [[ $CIRRUS_TAG != '' ]]; then
-            pr=$(sed -n '/^export PODMAN_PR_NUM/s/^[^"]*"\([^"]*\)"$/\1/p' podman-rpm-info-vars.sh)
-            cat podman-rpm-info-vars.sh
-            echo $pr
-            if [[ $pr != "" ]]; then
-                gh auth login --with-token <<<"$LABEL_TOKEN"
-                # gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/containers/podman/pull/$pr
-                gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/ashley-cui/podman-actions-test/pull/15
-
-                gh auth logout
-            fi
-        fi
     release_script: |
         if [[ $CIRRUS_TAG != '' ]]; then
             pushd $OUTDIR
             sha256sum * > shasums
             popd
 
-            cat $OUTDIR
+            ls $OUTDIR
 
             gh auth login --with-token <<<"$RELEASE_TOKEN"
 
@@ -137,13 +124,27 @@ image_push_task:
 
             gh auth logout
         fi
+    podman_label_script: |
+        if [[ $CIRRUS_TAG != '' ]]; then
+            pr=$(sed -n '/^export PODMAN_PR_NUM/s/^[^"]*"\([^"]*\)"$/\1/p' podman-rpm-info-vars.sh)
+            cat podman-rpm-info-vars.sh
+            echo $pr
+            # if [[ $pr != "" ]]; then
+            #     gh auth login --with-token <<<"$LABEL_TOKEN"
+            #     gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/containers/podman/pull/$pr
+            #     gh auth logout
+            # fi
+            gh auth login --with-token <<<"$LABEL_TOKEN"
+            gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/ashley-cui/podman-actions-test/pull/15
+            gh auth logout
+        fi
 
 # test_task:
 #     name: "Total Success"
 #     alias: success
 #     depends_on:
 #         - image_build
-#         - image_push
+#         - publish_images
 #     container:
 #         image: "${FEDORA_CONTAINER_FQIN}"
 #         cpu: 1
