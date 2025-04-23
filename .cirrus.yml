@@ -135,7 +135,7 @@ publish_images_task:
             #     gh auth logout
             # fi
             gh auth login --with-token <<<"$LABEL_TOKEN"
-            gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/ashley-cui/podman-actions-test/pull/15
+            gh pr edit --remove-label do-not-merge/wait-machine-os-build  https://github.com/ashley-cui/podman-actions-test/pull/14
             gh auth logout
         fi
 
